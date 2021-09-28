@@ -110,7 +110,7 @@ def main(UD_file, in_file, out_file, scramble=False):
     t2sents = read_conllu(in_file, False)
 
     sent_id = 0
-    with open(out_file, 'w') as out:
+    with open(out_file, 'w', encoding="utf-8") as out:
         out_sents = []
         for usent, tsent in zip(udsents, t2sents):
             sent_id += 1

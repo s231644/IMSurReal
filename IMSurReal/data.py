@@ -247,7 +247,8 @@ def normalize(word):
 def read_conllu(filename, ud=False, skip_lost=True, orig_word=False, convert_lemma=False, simple=False, endless=False, first=None):
     count = 0
     sent = Sentence()
-    with (lzma.open(filename, "rt", encoding='utf-8') if filename.endswith('xz') else open(filename)) as fin:
+    with (lzma.open(filename, "rt", encoding='utf-8') if filename.endswith('xz') else open(filename, encoding="utf-8")) as fin:
+        # for line in fin.readlines():
         while True:
             line = fin.readline()
             if line == '' or (first and count >= first): # end of file or reach maximum sentence count
