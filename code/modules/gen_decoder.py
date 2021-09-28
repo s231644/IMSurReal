@@ -1,13 +1,12 @@
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
+import code.dynet_modules as dm
 from time import time
-from utils import *
-from data import *
-from collections import defaultdict
-from modules.seq_encoder import SeqEncoder
-from modules.bag_encoder import BagEncoder
-from modules.tree_encoder import TreeEncoder
+from code.utils import signature, sum_vecs, traverse_bottomup, eval_all, Decoder
+from code.data import LostToken, Token, flatten
+from code.modules.seq_encoder import SeqEncoder
+from code.modules.bag_encoder import BagEncoder
+from code.modules.tree_encoder import TreeEncoder
+
 
 class GenDecoder(Decoder):
     def __init__(self, args, model, lost_map):

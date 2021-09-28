@@ -1,8 +1,6 @@
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
-from utils import *
-
+import code.dynet_modules as dm
+from code.utils import Encoder
 
 
 class BagEncoder(Encoder):
@@ -11,7 +9,6 @@ class BagEncoder(Encoder):
         self.name = name
         self.attention = dm.Attention(self.model, self.args.token_dim, self.args.token_dim)
         self.log(f'Initialized <{self.__class__.__name__}>, params = {self.model.parameter_count()}')
-
 
     def encode(self, sent):
         input_mat = dy.concatenate_cols([t.vecs['feat'] for t in sent.tokens])

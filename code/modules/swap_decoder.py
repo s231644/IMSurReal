@@ -1,13 +1,13 @@
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
-from utils import *
+import code.dynet_modules as dm
+from code.data import Token
+from code.utils import Decoder, sum_vecs, eval_all
 from time import time
 from collections import defaultdict
 
-from modules.seq_encoder import SeqEncoder
-from modules.bag_encoder import BagEncoder
-from modules.tree_encoder import TreeEncoder
+from code.modules.seq_encoder import SeqEncoder
+from code.modules.bag_encoder import BagEncoder
+from code.modules.tree_encoder import TreeEncoder
 
 
 class SwapDecoder(Decoder):

@@ -1,9 +1,10 @@
+import Levenshtein
 import dynet as dy
-import dynet_modules as dm
 import numpy as np
 import gzip, pickle
 from collections import defaultdict
-from utils import *
+from code.utils import Encoder, signature
+
 
 class FeatEncoder(Encoder):
     def __init__(self, args, model, train_sents=None):
@@ -37,7 +38,6 @@ class FeatEncoder(Encoder):
                 self.char_lstm_b_encoder = dy.VanillaLSTMBuilder(1, self.args.hid_dim, self.args.hid_dim/2, self.model)
         self.log(f'Initialized <{self.__class__.__name__}>, params = {self.model.parameter_count()}')
 
-
     def load_maps(self):
         print('load maps')
         with gzip.open(self.args.model_file+'.maps.gz','rb') as stream:
@@ -50,8 +50,6 @@ class FeatEncoder(Encoder):
             self.label_map = pickle.load(stream)
             self.lost_map = pickle.load(stream)
             self.inf_rules = pickle.load(stream)
-
-
 
     def get_maps(self, sents):
         self.args.num_train_sents = 0
@@ -145,7 +143,6 @@ class FeatEncoder(Encoder):
             self.log('automatically add xpos as feature')
             self.args.features.append('xpos')
 
-
         # token represntation dimension is the same as all hidden dimensions, 
         # since all the feature vectors are summed instead of concatenated
         self.args.token_dim = self.args.hid_dim
@@ -189,8 +186,6 @@ class FeatEncoder(Encoder):
             pickle.dump(self.lost_map, stream, -1)
             pickle.dump(self.inf_rules, stream, -1)
 
-
-
     def encode(self, sent, train_mode=False):
         # encode the root
         # sent.root.vecs['feat'] = self.special[0]
@@ -232,5 +227,3 @@ class FeatEncoder(Encoder):
             # token.vecs['feat'] = dy.concatenate(vecs)
             # token.vecs['feat'] = sum(vecs)
             token.vecs['feat'] = dy.dropout(sum(vecs), self.args.dropout) if train_mode else sum(vecs)
-
-

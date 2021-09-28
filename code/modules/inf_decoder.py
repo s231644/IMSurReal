@@ -1,13 +1,13 @@
 import dynet as dy
-import dynet_modules as dm
+import code.dynet_modules as dm
 import numpy as np
-import gzip
 from time import time
-from utils import *
-from collections import defaultdict
-from modules.seq_encoder import SeqEncoder
-from modules.bag_encoder import BagEncoder
-from modules.tree_encoder import TreeEncoder
+
+from code.utils import Decoder, sum_vecs
+from code.modules.seq_encoder import SeqEncoder
+from code.modules.bag_encoder import BagEncoder
+from code.modules.tree_encoder import TreeEncoder
+
 
 class InfDecoder(Decoder):
     def __init__(self, args, model, c2i, emb, inf_rules, dev_sents):
@@ -66,7 +66,6 @@ class InfDecoder(Decoder):
             self.tree_encoder.encode(sent, self.args.pred_tree)
         sum_vecs(sent, self.vec_key, ['feat', 'inf_seq', 'inf_bag', 'inf_tree'])
         # sum_vecs(sent, self.vec_key, ['inf_seq', 'inf_bag', 'inf_tree'])
-
 
     def decode(self, tokens, train_mode=False):
         errs = []
@@ -152,8 +151,6 @@ class InfDecoder(Decoder):
         return {'loss': dy.esum(errs) if errs else None,
                 'correct': correct,
                 'total': total}
-
-
 
     def train_one_step(self, sent):
         t0 = time()

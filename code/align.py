@@ -4,8 +4,6 @@ import Levenshtein
 
 from code.data import read_conllu, Token
 
-sys.path.append(".")
-
 
 def check_constraints(pairs):
     fdict = {k['tid']:v for k,v in pairs}

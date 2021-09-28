@@ -1,13 +1,11 @@
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
-import gzip
+import code.dynet_modules as dm
 from time import time
-from utils import *
-from collections import defaultdict
-from modules.seq_encoder import SeqEncoder
-from modules.bag_encoder import BagEncoder
-from modules.tree_encoder import TreeEncoder
+from code.utils import Decoder, sum_vecs, text_bleu
+from code.modules.seq_encoder import SeqEncoder
+from code.modules.bag_encoder import BagEncoder
+from code.modules.tree_encoder import TreeEncoder
+
 
 class ConDecoder(Decoder):
     def __init__(self, args, model, c2i, emb):

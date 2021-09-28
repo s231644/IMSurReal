@@ -1,7 +1,5 @@
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
-from utils import *
+from code.utils import Encoder
 
 
 class SeqEncoder(Encoder):
@@ -11,8 +9,6 @@ class SeqEncoder(Encoder):
         self.token_seq_encoder = dy.BiRNNBuilder(1, self.args.token_dim, self.args.token_dim, self.model, dy.VanillaLSTMBuilder)
         self.special = self.model.add_lookup_parameters((1, self.args.token_dim))
         self.log(f'Initialized <{self.__class__.__name__}>, params = {self.model.parameter_count()}')
-
-
 
     def encode(self, sent, key='input_tokens'):
         # TODO: cover more situations (swap, gen?)

@@ -1,15 +1,15 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 import dynet as dy
-import dynet_modules as dm
+import code.dynet_modules as dm
 import numpy as np
-import random
-from utils import *
-from data import flatten
+from code.utils import Decoder, traverse_bottomup, sum_vecs, eval_all
+from code.data import flatten
 from time import time
-from modules.seq_encoder import SeqEncoder
-from modules.bag_encoder import BagEncoder
-from modules.tree_encoder import TreeEncoder
+from code.modules.seq_encoder import SeqEncoder
+from code.modules.bag_encoder import BagEncoder
+from code.modules.tree_encoder import TreeEncoder
+
 
 class TSPDecoder(Decoder):
     def __init__(self, args, model, full = False):
