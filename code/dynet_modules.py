@@ -1,6 +1,7 @@
 import dynet as dy
 import numpy as np
 
+
 def orthonormal_initializer(output_size, input_size):
     """
     adopted from Timothy Dozat https://github.com/tdozat/Parser/blob/master/lib/linalg.py
@@ -31,12 +32,15 @@ def orthonormal_initializer(output_size, input_size):
         Q = np.random.randn(input_size, output_size) / np.sqrt(output_size)
     return np.transpose(Q.astype(np.float32))
 
+
 def set_orthonormal(p):
     p.set_value(orthonormal_initializer(p.shape()[0], p.shape[1]))
+
 
 def clip_all(model, low=-1, high=1):
     for p in model.parameter_list():
         p.clip_inplace(low, high)
+
 
 def leaky_relu(x):
     return dy.bmax(.1*x, x)
@@ -62,13 +66,13 @@ class MLP(object):
         self.bs = [model.add_parameters(d) for d in ds[1:]]
         self.ws = [model.add_parameters((j, i)) for i, j in zip(ds, ds[1:])]
 
-
     def forward(self, x):
         for i, (b, w) in enumerate(zip(self.bs, self.ws)):
             if i:
                 x = leaky_relu(x)
             x = dy.affine_transform([b, w, x])
         return x
+
 
 class TreeLSTM(object):
     def __init__(self, model, dm, att_type):
@@ -82,7 +86,6 @@ class TreeLSTM(object):
             self.attention = Attention(model, dm, dm)
         if self.att_type == 'selfatt':
             self.self_attention = Attention(model, dm, dm)
-
 
     def state(self, x, hs=None, cs=None):
         if not hs:
@@ -186,6 +189,7 @@ class SimplePointer:
         s = cand_mat_trans * (self.att_q * seq_vec)
         return s
 
+
 class SelfPointer:
     def __init__(self, model, token_dim, query_dim=None):
         self.model = model
@@ -199,6 +203,7 @@ class SelfPointer:
         cand_mat_trans = dy.transpose(cand_mat)
         s = cand_mat_trans * (self.att_q * seq_vec)
         return s
+
 
 class BiaffineAttention:
     def __init__(self, model, token_dim, hid_dim, self_attention=False):
@@ -225,6 +230,7 @@ class BiaffineAttention:
         score_mat = dy.transpose(fr_mat) * self.biaffine * to_mat
         return score_mat
 
+
 class BilinearAttention:
     def __init__(self, model, token_dim, hid_dim):
         self.mlp_fr = MLP(model, token_dim, hid_dim)
@@ -241,6 +247,7 @@ class BilinearAttention:
                      leaky_relu(self.mlp_to.forward(to_mat))
         return score_mat
 
+
 class PairAttention:
     def __init__(self, model, token_dim, hid_dim):
         self.mlp_fr = MLP(model, token_dim, hid_dim)
@@ -254,10 +261,3 @@ class PairAttention:
                                                          for t in to_vecs])
                                         for f in fr_vecs])
         return score_mat
-
-
-
-
-
-
-

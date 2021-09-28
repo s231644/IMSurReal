@@ -1,5 +1,4 @@
 import sys
-from data import *
 from mosestokenizer import MosesDetokenizer
 
 

@@ -1,28 +1,23 @@
-import sys
-from data import *
-from utils import *
+from tqdm import tqdm
+from itertools import chain
+# import objgraph
 import dynet as dy
-import dynet_modules as dm
-import numpy as np
 from argparse import ArgumentParser
 import gzip, pickle
 from time import time 
 import re
 from collections import defaultdict
-import Levenshtein
-import random
-import json
-from modules.feat_encoder import FeatEncoder
-from modules.tree_encoder import TreeEncoder
-from modules.tsp_decoder import TSPDecoder
-from modules.inf_decoder import InfDecoder
-from modules.con_decoder import ConDecoder
-from modules.swap_decoder import SwapDecoder
-from modules.lin_decoder import LinDecoder
-from modules.gen_decoder import GenDecoder
-from tqdm import tqdm
-from itertools import chain
-# import objgraph
+
+from code.data import read_conllu, write_conllu, write_txt, iterate_batch
+from code.utils import reorder, capitalize
+from code.modules.feat_encoder import FeatEncoder
+from code.modules.tsp_decoder import TSPDecoder
+from code.modules.inf_decoder import InfDecoder
+from code.modules.con_decoder import ConDecoder
+from code.modules.swap_decoder import SwapDecoder
+from code.modules.lin_decoder import LinDecoder
+from code.modules.gen_decoder import GenDecoder
+
 
 class Realization(object):
     def __init__(self, args):

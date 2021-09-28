@@ -1,6 +1,8 @@
 import sys
-from data import read_conllu, write_conllu, iterate
 import nltk.translate.bleu_score as bs
+
+from code.data import read_conllu
+
 
 def read_txt(filename):
     sents = []
@@ -14,7 +16,6 @@ def read_txt(filename):
                 text = ''
             sents.append(text.lower().split())
     return sents
-
 
 
 def main(gold_file, pred_file, gkey='word', pkey='word'):
@@ -37,8 +38,6 @@ def main(gold_file, pred_file, gkey='word', pkey='word'):
     exact = sum(r[0] == h for r, h in zip(all_ref, all_hyp)) / len(all_ref)
     # print(f'{gkey}: bleu={bleu:.4f}, exact={exact:.4f}')
     print(f'{100*bleu:.2f}')
-
-
 
 
 if __name__ == '__main__':

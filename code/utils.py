@@ -1,11 +1,5 @@
-import sys
-import dynet_modules as dm
-from data import Token, flatten
 import dynet as dy
-import numpy as np
 import nltk.translate.bleu_score as bs
-import gzip, pickle
-from copy import copy
 
 
 class Module(object):
@@ -45,6 +39,7 @@ class Encoder(Module):
         print('encode() not implemented!')
         exit()
 
+
 class Decoder(Module):
     def __init__(self, args, model):
         super().__init__(args, model)
@@ -63,6 +58,7 @@ def traverse_topdown(h, pred=False):
     for d in (h['pdeps'] if pred else h['deps']):
         if d.not_empty():
             yield from traverse_topdown(d, pred)
+
 
 def traverse_bottomup(h, pred=False):
     for d in (h['pdeps'] if pred else h['deps']):
@@ -84,6 +80,7 @@ def eval_all(gold_seqs, pred_seqs, gkey='lemma', pkey='lemma'):
     chencherry = bs.SmoothingFunction()
     bleu = bs.corpus_bleu(all_ref, all_hyp, smoothing_function=chencherry.method2)
     return bleu
+
 
 def text_bleu(gold_txts, pred_txts):
     all_ref = [[txt.lower().split()] for txt in gold_txts]
@@ -117,12 +114,15 @@ def capitalize(tokens, ignore_lemma_case=False):
     # if words and not words[0]['oword'][0].isupper():
         words[0]['oword'] = words[0]['oword'].capitalize()
 
+
 def signature(t):
     # unique signature of the lost token
     return (t['lemma'], t['upos'], '|'.join(t['morph']) if t['morph'] else '_')
 
+
 def inverse_num(tokens):
     return sum((t['original_id'] - i) for (i, t) in enumerate(tokens, 1) if t['original_id'] > i)
+
 
 def reorder(sent, key='linearized_tokens'):
     assert key in ['linearized_tokens', 'generated_tokens', 'sorted_tokens']
@@ -140,6 +140,3 @@ def reorder(sent, key='linearized_tokens'):
 def sum_vecs(sent, out_key, in_keys):
     for token in sent.tokens:
         token.vecs[out_key] = sum(token.vecs[in_key] for in_key in in_keys if in_key in token.vecs)
-
-
-

@@ -1,6 +1,7 @@
 import sys
 from collections import defaultdict
 
+
 def read_conllu(filename):
     data = []
     text = ''
@@ -15,7 +16,6 @@ def read_conllu(filename):
             text = ''
             sent = ''
     return data
-
 
 
 def ensemble(output_file, *input_files):

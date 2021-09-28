@@ -1,8 +1,10 @@
 import sys
-sys.path.append(".")
-from data import *
 import random
 import Levenshtein
+
+from code.data import read_conllu, Token
+
+sys.path.append(".")
 
 
 def check_constraints(pairs):
@@ -92,6 +94,7 @@ def mark(sent, pairs, missing):
                         'label': '<LOST>'
                         })
             sent.add_token(n)
+
 
 def align_sent(tsent, usent):
     ulemmas = set(u['lemma'] for u in usent.get_tokens())
