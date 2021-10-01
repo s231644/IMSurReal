@@ -1,13 +1,14 @@
 import dynet as dy
-import code.dynet_modules as dm
-from code.data import Token
-from code.utils import Decoder, sum_vecs, eval_all
+import src.dynet_modules as dm
+from src.data import Token
+from src.utils import Decoder, sum_vecs, eval_all
 from time import time
 from collections import defaultdict
 
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 
 class SwapDecoder(Decoder):
@@ -31,6 +32,8 @@ class SwapDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'swap_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'swap_tree')
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'swap_graph')
 
         self.special = self.model.add_lookup_parameters((2, self.args.token_dim))
         self.f_lstm = dy.VanillaLSTMBuilder(1, self.args.token_dim, self.args.token_dim, model)
@@ -110,7 +113,9 @@ class SwapDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, self.vec_key, ['feat', 'swap_seq', 'swap_bag', 'swap_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+        sum_vecs(sent, self.vec_key, ['feat', 'swap_seq', 'swap_bag', 'swap_tree', 'swap_graph'])
 
         tokens = sent[self.pred_input_key if pipeline else self.train_input_key]
         res = self.decode(tokens, False)
@@ -127,6 +132,8 @@ class SwapDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
         sum_vecs(sent, self.vec_key, ['feat', 'swap_seq', 'swap_bag', 'swap_tree'])
 
         # train on gold 

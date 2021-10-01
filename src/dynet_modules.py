@@ -74,56 +74,6 @@ class MLP(object):
         return x
 
 
-class TreeLSTM(object):
-    def __init__(self, model, dm, att_type):
-        self.model = model 
-        self.att_type = att_type
-        self.WS = [self.model.add_parameters((dm, dm), init=orthonormal_initializer(dm, dm)) for _ in "iouf"]
-        self.US = [self.model.add_parameters((dm, dm), init=orthonormal_initializer(dm, dm)) for _ in "iouf"]
-        self.BS = [self.model.add_parameters(dm) for _ in "iouf"]
-
-        if self.att_type == 'att' or self.att_type == 'selfatt':
-            self.attention = Attention(model, dm, dm)
-        if self.att_type == 'selfatt':
-            self.self_attention = Attention(model, dm, dm)
-
-    def state(self, x, hs=None, cs=None):
-        if not hs:
-            # initial state
-            Wi, Wo, Wu, Wf = self.WS
-            bi, bo, bu, bf = self.BS
-
-            i = dy.logistic(dy.affine_transform([bi, Wi, x]))
-            o = dy.logistic(dy.affine_transform([bo, Wo, x]))
-            u = dy.tanh(dy.affine_transform([bu, Wu, x]))
-            c = dy.cmult(i, u)
-            h = dy.cmult(o, dy.tanh(c))
-            return h, c
-        else:
-            # transduce
-            Ui, Uo, Uu, Uf = self.US
-            bi, bo, bu, bf = self.BS
-            Wi, Wo, Wu, Wf = self.WS
-
-            if self.att_type == 'selfatt':
-                hm = dy.concatenate_cols(hs)
-                hm = self.self_attention.encode(hm)
-                hm = self.attention.encode(hm, x)
-            elif self.att_type == 'att':
-                hm = dy.concatenate_cols(hs)
-                hm = self.attention.encode(hm, x)
-            else:
-                hm = dy.esum(hs)
-
-            i = dy.logistic(dy.affine_transform([bi, Ui, hm, Wi, x]))
-            o = dy.logistic(dy.affine_transform([bo, Uo, hm, Wo, x]))
-            u = dy.tanh(dy.affine_transform([bu, Uu, hm, Wu, x]))
-            fs = [dy.logistic(dy.affine_transform([bf, Uf, h, Wf, x])) for h in hs]
-            c_out = dy.cmult(i, u) + dy.esum([dy.cmult(f, c) for f, c in zip(fs, cs)])
-            h_out = dy.cmult(o, dy.tanh(c_out))
-            return h_out, c_out
-
-
 class Attention(object):
     """
     A module for both self attention and normal attention with key, query and value
@@ -261,3 +211,53 @@ class PairAttention:
                                                          for t in to_vecs])
                                         for f in fr_vecs])
         return score_mat
+
+
+class TreeLSTM(object):
+    def __init__(self, model, dm, att_type):
+        self.model = model
+        self.att_type = att_type
+        self.WS = [self.model.add_parameters((dm, dm), init=orthonormal_initializer(dm, dm)) for _ in "iouf"]
+        self.US = [self.model.add_parameters((dm, dm), init=orthonormal_initializer(dm, dm)) for _ in "iouf"]
+        self.BS = [self.model.add_parameters(dm) for _ in "iouf"]
+
+        if self.att_type == 'att' or self.att_type == 'selfatt':
+            self.attention = Attention(model, dm, dm)
+        if self.att_type == 'selfatt':
+            self.self_attention = Attention(model, dm, dm)
+
+    def state(self, x, hs=None, cs=None):
+        if not hs:
+            # initial state
+            Wi, Wo, Wu, Wf = self.WS
+            bi, bo, bu, bf = self.BS
+
+            i = dy.logistic(dy.affine_transform([bi, Wi, x]))
+            o = dy.logistic(dy.affine_transform([bo, Wo, x]))
+            u = dy.tanh(dy.affine_transform([bu, Wu, x]))
+            c = dy.cmult(i, u)
+            h = dy.cmult(o, dy.tanh(c))
+            return h, c
+        else:
+            # transduce
+            Ui, Uo, Uu, Uf = self.US
+            bi, bo, bu, bf = self.BS
+            Wi, Wo, Wu, Wf = self.WS
+
+            if self.att_type == 'selfatt':
+                hm = dy.concatenate_cols(hs)
+                hm = self.self_attention.encode(hm)
+                hm = self.attention.encode(hm, x)
+            elif self.att_type == 'att':
+                hm = dy.concatenate_cols(hs)
+                hm = self.attention.encode(hm, x)
+            else:
+                hm = dy.esum(hs)
+
+            i = dy.logistic(dy.affine_transform([bi, Ui, hm, Wi, x]))
+            o = dy.logistic(dy.affine_transform([bo, Uo, hm, Wo, x]))
+            u = dy.tanh(dy.affine_transform([bu, Uu, hm, Wu, x]))
+            fs = [dy.logistic(dy.affine_transform([bf, Uf, h, Wf, x])) for h in hs]
+            c_out = dy.cmult(i, u) + dy.esum([dy.cmult(f, c) for f, c in zip(fs, cs)])
+            h_out = dy.cmult(o, dy.tanh(c_out))
+            return h_out, c_out

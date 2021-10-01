@@ -1,5 +1,5 @@
 import dynet as dy
-from code.utils import Encoder
+from src.utils import Encoder
 
 
 class SeqEncoder(Encoder):

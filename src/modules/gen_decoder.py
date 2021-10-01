@@ -1,11 +1,12 @@
 import dynet as dy
-import code.dynet_modules as dm
+import src.dynet_modules as dm
 from time import time
-from code.utils import signature, sum_vecs, traverse_bottomup, eval_all, Decoder
-from code.data import LostToken, Token, flatten
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
+from src.utils import signature, sum_vecs, traverse_bottomup, eval_all, Decoder
+from src.data import LostToken, Token, flatten
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 
 class GenDecoder(Decoder):
@@ -27,7 +28,8 @@ class GenDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'gen_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'gen_tree')
-
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'gen_graph')
 
         self.lf_lstm = dy.VanillaLSTMBuilder(1, self.args.token_dim, self.args.token_dim, self.model)
         self.lb_lstm = dy.VanillaLSTMBuilder(1, self.args.token_dim, self.args.token_dim, self.model)
@@ -45,7 +47,6 @@ class GenDecoder(Decoder):
         self.lost_emb = self.model.add_lookup_parameters((len(self.lost_map), self.args.token_dim))
         self.gen_tokens = [LostToken(l) for l in self.lost_map]
 
-
         self.log(f'Initialized <{self.__class__.__name__}>, params = {self.model.parameter_count()}')
 
     def encode(self, sent):
@@ -56,10 +57,14 @@ class GenDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, self.vec_key, ['feat', 'gen_seq', 'gen_bag', 'gen_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+        sum_vecs(sent, self.vec_key, ['feat', 'gen_seq', 'gen_bag', 'gen_tree', 'gen_graph'])
 
+    def decode(self, head, seq, targets=None, train_mode=False):
+        if not targets:
+            targets = []
 
-    def decode(self, head, seq, targets = [], train_mode = False):
         out_lseq = []
         out_rseq = []
         errs = []
@@ -82,7 +87,6 @@ class GenDecoder(Decoder):
         rb_vecs = self.rb_lstm.initial_state().transduce([tk.vecs[self.vec_key] for tk in reversed(rseq)])
         for tk, rb_vec in zip(reversed(rseq), rb_vecs):
             tk.vecs['rb'] = rb_vec
-
 
         # generate left 
         lf_state = self.lf_lstm.initial_state().add_input(rseq[1].vecs['rb'])
@@ -195,7 +199,6 @@ class GenDecoder(Decoder):
 
         sent[self.pred_output_key] = flatten(sent.root, 'generated_domain')
 
-
     def train_one_step(self, sent):
         total = correct = loss = 0
         t0 = time()
@@ -216,9 +219,7 @@ class GenDecoder(Decoder):
                 'correct': correct
                 }
 
-
     def evaluate(self, sents):
         gold_seqs = [sent[self.train_output_key] for sent in sents]
         pred_seqs = [sent[self.pred_output_key] for sent in sents]
         return eval_all(gold_seqs, pred_seqs)
-

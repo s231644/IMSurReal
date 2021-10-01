@@ -2,7 +2,7 @@ import sys
 import random
 import Levenshtein
 
-from code.data import read_conllu, Token
+from src.data import read_conllu, Token
 
 
 def check_constraints(pairs):

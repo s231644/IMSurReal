@@ -3,7 +3,7 @@ import dynet as dy
 import numpy as np
 import gzip, pickle
 from collections import defaultdict
-from code.utils import Encoder, signature
+from src.utils import Encoder, signature
 
 
 class FeatEncoder(Encoder):

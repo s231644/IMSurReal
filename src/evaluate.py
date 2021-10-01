@@ -1,7 +1,7 @@
 import sys
 import nltk.translate.bleu_score as bs
 
-from code.data import read_conllu
+from src.data import read_conllu
 
 
 def read_txt(filename):

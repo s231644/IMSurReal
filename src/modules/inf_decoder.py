@@ -1,13 +1,13 @@
 import dynet as dy
-import code.dynet_modules as dm
+import src.dynet_modules as dm
 import numpy as np
 from time import time
 
-from code.utils import Decoder, sum_vecs
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
-
+from src.utils import Decoder, sum_vecs
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 class InfDecoder(Decoder):
     def __init__(self, args, model, c2i, emb, inf_rules, dev_sents):
@@ -34,6 +34,8 @@ class InfDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'inf_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'inf_tree')
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'inf_graph')
 
         self.c2i = c2i
         self.emb = emb
@@ -64,7 +66,9 @@ class InfDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, self.vec_key, ['feat', 'inf_seq', 'inf_bag', 'inf_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+        sum_vecs(sent, self.vec_key, ['feat', 'inf_seq', 'inf_bag', 'inf_tree', 'inf_graph'])
         # sum_vecs(sent, self.vec_key, ['inf_seq', 'inf_bag', 'inf_tree'])
 
     def decode(self, tokens, train_mode=False):

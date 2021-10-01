@@ -8,15 +8,15 @@ from time import time
 import re
 from collections import defaultdict
 
-from code.data import read_conllu, write_conllu, write_txt, iterate_batch
-from code.utils import reorder, capitalize
-from code.modules.feat_encoder import FeatEncoder
-from code.modules.tsp_decoder import TSPDecoder
-from code.modules.inf_decoder import InfDecoder
-from code.modules.con_decoder import ConDecoder
-from code.modules.swap_decoder import SwapDecoder
-from code.modules.lin_decoder import LinDecoder
-from code.modules.gen_decoder import GenDecoder
+from src.data import read_conllu, write_conllu, write_txt, iterate_batch
+from src.utils import reorder, capitalize
+from src.modules.feat_encoder import FeatEncoder
+from src.modules.tsp_decoder import TSPDecoder
+from src.modules.inf_decoder import InfDecoder
+from src.modules.con_decoder import ConDecoder
+from src.modules.swap_decoder import SwapDecoder
+from src.modules.lin_decoder import LinDecoder
+from src.modules.gen_decoder import GenDecoder
 
 
 class Realization(object):
@@ -143,7 +143,6 @@ class Realization(object):
         self.model.save(self.args.model_file)
         self.show_l2_norms()
 
-
     def load_model(self):
         self.log('loading model')
         self.model.populate(self.args.model_file)
@@ -167,7 +166,6 @@ class Realization(object):
             total += v
             print(f'<Decoder:{k}> = {v:.4f}')
         print(f'<Total> = {total:.2f}')
-
 
     def encode_sent(self, sent, train_mode=False):
         # only encode the features for sharing, let each decoder encode its own structure
@@ -218,8 +216,6 @@ class Realization(object):
                         self.log('bad gradient, load previous model')
                         self.load_model()
             train_time = time() - t0
-
-            
 
             # evaluate on dev set
             t0 = time()
@@ -279,9 +275,6 @@ class Realization(object):
             for task in self.args.tasks:
                 self.log(f"test_{task}_score={100*res[f'{task}_score']:.2f}")
 
-
-
-
     def finetune(self, best_scores):        
         # freeze all encoders
         self.encoders['feat'].set_freeze(True)
@@ -326,7 +319,6 @@ class Realization(object):
                             self.load_model()
                 train_time = time() - t0
 
-
                 # evaluate on dev set
                 res = self.predict(self.dev_sents[:1000], task)
                 score = res['score']
@@ -356,7 +348,6 @@ class Realization(object):
 
             self.log(f'Finish finetuning {task}')
             self.decoders[task].set_freeze(True)
-
 
     def predict(self, sents, task):
         # only for predicting single step, no pipeline, no output 
@@ -415,7 +406,7 @@ if __name__ == '__main__':
     parser.add_argument("--tree_lstm", default='simple', choices=['simple', 'att', 'selfatt'])
     parser.add_argument("--head_input", default='deps_vec', choices=['vec', 'deps_vec', 'deps_mem'])
     parser.add_argument("--dropout", type=float, default=0)
-    
+
 
     # beam linearizer
     parser.add_argument("--beam_size", type=int, default=16)
@@ -446,7 +437,6 @@ if __name__ == '__main__':
     parser.add_argument("--pred_seq", action='store_true')
     parser.add_argument("--pred_tree", action='store_true')
     parser.add_argument("--no_xpos", action='store_true')
-
 
     args = parser.parse_args()
 

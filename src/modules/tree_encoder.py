@@ -1,7 +1,7 @@
 import dynet as dy
 
-from code.dynet_modules import TreeLSTM
-from code.utils import Encoder
+from src.dynet_modules import TreeLSTM, Attention
+from src.utils import Encoder
 
 
 class TreeEncoder(Encoder):
@@ -14,17 +14,18 @@ class TreeEncoder(Encoder):
         self.tree_lstm = TreeLSTM(self.model, self.args.token_dim, self.args.tree_lstm)
         self.special = self.model.add_lookup_parameters((1, self.args.token_dim))
 
+        self.graph_positions = self.model.add_lookup_parameters((4, self.args.token_dim))
+        self.attention = Attention(self.model, self.args.token_dim, self.args.token_dim)
+
         self.log(f'Initialized <{self.__class__.__name__}>, params = {self.model.parameter_count()}')
 
     def encode(self, sent, pred=False):
         sent.root.vecs['feat'] = self.special[0]
 
         self.encode_deps(sent.root, pred)
-        self.encode_head(sent.root, None, pred) 
+        self.encode_head(sent.root, None, pred)
 
         for token in sent.tokens:
-            # token.vecs[self.key] = (token.vecs[self.key+'_head'] if 'head' in self.args.tree_vecs else 0) + \
-                                   # (token.vecs[self.key+'_deps'] if 'deps' in self.args.tree_vecs else 0)
             token.vecs[self.key] = token.vecs[self.key+'_head'] + token.vecs[self.key+'_deps']
 
     def encode_deps(self, head, pred=False):

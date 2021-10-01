@@ -1,14 +1,15 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 import dynet as dy
-import code.dynet_modules as dm
+import src.dynet_modules as dm
 import numpy as np
-from code.utils import Decoder, traverse_bottomup, sum_vecs, eval_all
-from code.data import flatten
+from src.utils import Decoder, traverse_bottomup, sum_vecs, eval_all
+from src.data import flatten
 from time import time
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 
 class TSPDecoder(Decoder):
@@ -26,6 +27,8 @@ class TSPDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'tsp_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'tsp_tree')
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'tsp_graph')
 
         self.full = full
         self.special = self.model.add_lookup_parameters((2, self.args.token_dim))
@@ -44,7 +47,9 @@ class TSPDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, self.vec_key, ['feat', 'tsp_seq', 'tsp_bag', 'tsp_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+        sum_vecs(sent, self.vec_key, ['feat', 'tsp_seq', 'tsp_bag', 'tsp_tree', 'tsp_graph'])
         # print([t['lemma'] for t in sent['gold_linearized_tokens']])
         # print([t['lemma'] for t in sent.tokens])
         # exit()

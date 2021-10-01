@@ -110,6 +110,8 @@ class Sentence(dict):
         self['gold_linearized_tokens'] = []
         self['gold_generated_tokens'] = []
 
+        self['rel_positions'] = []
+
     def __repr__(self):
         return ' '.join([f"{t['lemma']}({t['tid']})" for t in self.tokens[1:]])
 
@@ -121,7 +123,6 @@ class Sentence(dict):
             token.vecs = {}
             token['linearized_domain'] = []
             token['generated_domain'] = []
-
 
     def get_tokens(self, include_empty = True):
         return [t for t in self.tokens[1:] if include_empty or t.not_empty()]
@@ -148,6 +149,33 @@ class Sentence(dict):
             t['head'] = self.tokens[t['hid']] 
             t['head']['lost'].append(t)
 
+        n_tokens = len(self.tokens)
+
+        # making a graph "positional" table
+        # 0 --- itself, 1 --- parent, 2 --- child, 3 --- other
+        rel_positions = [[3 for i in range(n_tokens)] for j in range(n_tokens)]
+
+        ancs = dict()
+
+        def dfs(u):
+            deps = u['deps']
+            res = [v for v in deps]
+            for v in deps:
+                res.extend(dfs(v))
+            ancs[u] = res
+            return res
+
+        dfs(self.root)
+
+        for u in ancs:
+            u_i = u['tid']
+            rel_positions[u_i][u_i] = 0
+            for v in ancs[u]:
+                v_i = v['tid']
+                rel_positions[u_i][v_i] = 1
+                rel_positions[v_i][u_i] = 2
+
+        self['rel_positions'] = rel_positions
 
         # second pass to sort the domains if the original id is known (for training T1)
         if any(t['original_id'] is not None for t in self.tokens[1:]):
@@ -345,7 +373,7 @@ def read_conllu(filename, ud=False, skip_lost=True, orig_word=False, convert_lem
 
 # default write ud format as output
 def write_conllu(filename, sents, ud=True, use_morphstr=False, header=True):
-    with open(filename, 'w') as out:
+    with open(filename, 'w', encoding="utf-8") as out:
         sent_id = 0
         for sent in sents:
             sent_id += 1
@@ -372,8 +400,9 @@ def write_conllu(filename, sents, ud=True, use_morphstr=False, header=True):
             line += '\n'
             out.write(line)
 
+
 def write_txt(filename, sents):
-    with open(filename, 'w') as out:
+    with open(filename, 'w', encoding="utf-8") as out:
         sent_id = 0
         for sent in sents:
             sent_id += 1

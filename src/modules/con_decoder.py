@@ -1,10 +1,11 @@
 import dynet as dy
-import code.dynet_modules as dm
+import src.dynet_modules as dm
 from time import time
-from code.utils import Decoder, sum_vecs, text_bleu
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
+from src.utils import Decoder, sum_vecs, text_bleu
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 
 class ConDecoder(Decoder):
@@ -24,7 +25,8 @@ class ConDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'con_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'con_tree')
-
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'con_graph')
 
         self.c2i = c2i
         self.i2c = list(self.c2i.keys())
@@ -47,7 +49,9 @@ class ConDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, self.vec_key, ['feat', 'con_seq', 'con_bag', 'con_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+        sum_vecs(sent, self.vec_key, ['feat', 'con_seq', 'con_bag', 'con_tree', 'con_graph'])
 
 
     def decode(self, tokens, train_mode=False):

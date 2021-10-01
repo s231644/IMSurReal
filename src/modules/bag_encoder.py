@@ -1,6 +1,6 @@
 import dynet as dy
-import code.dynet_modules as dm
-from code.utils import Encoder
+import src.dynet_modules as dm
+from src.utils import Encoder
 
 
 class BagEncoder(Encoder):

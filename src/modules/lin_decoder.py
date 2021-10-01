@@ -1,13 +1,14 @@
 import dynet as dy
-import code.dynet_modules as dm
+import src.dynet_modules as dm
 from copy import copy
 import random
-from code.utils import Decoder, sum_vecs, traverse_topdown, eval_all, sent_bleu, inverse_num
+from src.utils import Decoder, sum_vecs, traverse_topdown, eval_all, sent_bleu, inverse_num
 from time import time
 from collections import defaultdict
-from code.modules.seq_encoder import SeqEncoder
-from code.modules.bag_encoder import BagEncoder
-from code.modules.tree_encoder import TreeEncoder
+from src.modules.seq_encoder import SeqEncoder
+from src.modules.bag_encoder import BagEncoder
+from src.modules.tree_encoder import TreeEncoder
+from src.modules.graph_encoder import GraphEncoder
 
 
 class LinDecoder(Decoder):
@@ -23,6 +24,8 @@ class LinDecoder(Decoder):
             self.bag_encoder = BagEncoder(self.args, self.model, 'lin_bag')
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder = TreeEncoder(self.args, self.model, 'lin_tree')
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder = GraphEncoder(self.args, self.model, 'lin_graph')
 
         self.l2r_linearizer = L2RLinearizer(self.args, self.model) if 'l2r' in self.args.lin_decoders else None
         self.r2l_linearizer = R2LLinearizer(self.args, self.model) if 'r2l' in self.args.lin_decoders else None
@@ -37,7 +40,10 @@ class LinDecoder(Decoder):
             self.bag_encoder.encode(sent)
         if 'tree' in self.args.tree_vecs:
             self.tree_encoder.encode(sent, self.args.pred_tree)
-        sum_vecs(sent, 'lin_vec', ['feat', 'lin_seq', 'lin_bag', 'lin_tree'])
+        if 'graph' in self.args.tree_vecs:
+            self.graph_encoder.encode(sent, self.args.pred_tree)
+
+        sum_vecs(sent, 'lin_vec', ['feat', 'lin_seq', 'lin_bag', 'lin_tree', 'lin_graph'])
 
 
     def predict(self, sent, pipeline=False):
