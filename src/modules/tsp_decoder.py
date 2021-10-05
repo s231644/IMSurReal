@@ -54,7 +54,6 @@ class TSPDecoder(Decoder):
         # print([t['lemma'] for t in sent.tokens])
         # exit()
 
-
     def decode(self, tokens, constraints=[], train_mode=False):
         loss = 0
         errs = []
@@ -85,7 +84,6 @@ class TSPDecoder(Decoder):
 
         return {'loss': loss, 
                 'seq': seq}
-
 
     def get_subtree_constraints(self, head):
         lin_order = [head['domain'].index(t)+1 for t in head['order']]
@@ -122,7 +120,6 @@ class TSPDecoder(Decoder):
                     token['linearized_domain'] = [token]
 
             sent['linearized_tokens'] = flatten(token, 'linearized_domain')
-
 
     def train_one_step(self, sent):
         total = correct = loss = 0
@@ -210,7 +207,6 @@ def solve_tsp(costs, constraints=[], beam_size=1, gls=False):
 
     if gls:
         search_parameters.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
-        
 
     # Solve the problem.
     assignment = routing.SolveWithParameters(search_parameters)
@@ -224,4 +220,3 @@ def solve_tsp(costs, constraints=[], beam_size=1, gls=False):
         return out
     else:
         return []
-

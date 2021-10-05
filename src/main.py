@@ -415,7 +415,7 @@ if __name__ == '__main__':
 
     # WARNING: unstable, experimental settings,
     # keep them as default
-    parser.add_argument("--tree_vecs", default='tree', help='combinations of: tree, seq, bag')
+    parser.add_argument("--tree_vecs", default='graph', help='combinations of: graph, tree, seq, bag')
     parser.add_argument("--ignore_lemma_case", action='store_true')
     parser.add_argument("--lemmatize", action='store_true')
     # parser.add_argument("--avg_loss", action='store_true')
